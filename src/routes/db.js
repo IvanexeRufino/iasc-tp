@@ -29,6 +29,11 @@ router.put('/', async(req,res) => {
     res.json({result: "OK"});
 });
 
+router.delete('/', async(req,res) => {
+    list.delete(req.query.key);
+    res.json({result: "OK"});
+});
+
 function handleGetEqual(body){
     let resp = list.get(body.key);
     if(resp != null){
@@ -41,7 +46,7 @@ function handleGetEqual(body){
     }
 }
 
-function handleComparison(body,res,comp){
+function handleComparison(body,comp){
     let set = list.entrySet();
     let resp = [];
     set.forEach(e => {
