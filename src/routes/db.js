@@ -23,46 +23,11 @@ router.get('/', async(req,res) => {
     res.json(resp);
 });
 
+//No valida existencia, solo inserta y si existe sobreescribe
 router.put('/', async(req,res) => {
     list.put(req.query.key,req.query.value);
     res.json({result: "OK"});
 });
-
-/*
-router.get('/', async (req, res) => {
-    res.json({
-        message: `Ingrese una clave como parametro de ruta.`
-    });
-});
-
-router.post('/:key', async (req, res) => {    
-    const { key } = req.params;
-    const { value } = req.query;
-    res.json({
-        message: `Clave ${key} actualizada con el valor ${value} exitosamente.`
-    });
-});
-
-router.get('/:key', async (req, res) => {
-    const { paramKey } = req.params;
-    handleGetEqual({key:paramKey,res});
-});
-
-router.delete('/:key', async (req, res) => {
-    const { key } = req.params;
-
-    res.json({
-        message: `Clave ${key} borrada exitosamente.`
-    });
-});
-
-router.put('/:key', async (req, res) => {
-    const { key } = req.params;
-    const { value } = req.query;
-    res.json({
-        message: `Clave ${key} actualizada con el valor ${value} exitosamente.`
-    });
-});*/
 
 function handleGetEqual(body){
     let resp = list.get(body.key);
@@ -87,6 +52,5 @@ function handleComparison(body,res,comp){
 
     return resp;
 }
-
 
 export default router;
