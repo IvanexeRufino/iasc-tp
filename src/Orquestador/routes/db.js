@@ -17,7 +17,7 @@ router.get('/', async(req,res) => {
     else if(req.query.method === "lt"){
         resp = handleComparison(req.query,(a,b)=>{return a<b;})
     }else{
-        resp = {error: -1, message: 'Invalid query param. Must be: ?key=unaKey;method=equal/gt/lt'};
+        resp = {error: -1, message: 'Invalid query param. Must be: ?key=unaKey&method=equal/gt/lt'};
     }
 
     res.json(resp);
