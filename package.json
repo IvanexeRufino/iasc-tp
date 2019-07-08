@@ -14,7 +14,8 @@
     "@babel/polyfill": "^7.4.4",
     "body-parser": "^1.19.0",
     "dsjslib": "^0.6.14",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "hjson": "^3.1.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
