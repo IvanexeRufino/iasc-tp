@@ -1,6 +1,7 @@
 import express, { urlencoded, json } from 'express'
+import bodyParser from 'body-parser';
 
-const app = express();
+const app = express(bodyParser.json());
 
 // Importing Routes
 import IndexRoutes from './routes/index'
