@@ -3,6 +3,8 @@ import { Socket } from 'net';
 
 const router = Router();
 
+const { crc32 } = require('crc');
+
 //import { dataServers } from './dataConnections';
 var dataServers = require('./dataConnections').default;
 
@@ -35,19 +37,8 @@ function sendRequestToDataNode(msg,res){
 
 //Aca tenemos que decidir a que socket le vamos a pasar el request
 function getSocket(msg, res){
-    return dataServers[0];
-
-    //Por ahora solo devolvemos un socket recien conectado
-    let socket = new Socket();
-    socket.json = function(data){
-        console.log('Sending data: ' + JSON.stringify(data));
-        socket.write(JSON.stringify(data));
-    }
-    socket.connect(12345,'127.0.0.1',() =>{
-        console.log("Connect to client Node Successful");
-    });
-
-    return socket;
+    const serverIndex = crc32(msg.key) % dataServers.length;
+    return dataServers[serverIndex];
 }
 
 router.get('/:key', async(req,res) => {
