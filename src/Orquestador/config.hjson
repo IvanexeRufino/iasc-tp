@@ -15,7 +15,7 @@
     */],
     "Datos": [
         {
-            "Port": 22221,
+            "Port": 12345,
             "IP": "127.0.0.1"
         },
         {
@@ -23,5 +23,6 @@
             "IP": "127.0.0.1"
         }
     ],
-    "Priority": 0
+    "Priority": 0,
+    "MaxConnectionRetries": 5
 }

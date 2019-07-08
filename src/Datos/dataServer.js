@@ -16,6 +16,9 @@ function createDataServer(){
             console.log('Data arrived: ' + chunk);
             handleMessage(chunk,socket);
         });
+        socket.on('error', (err) => {
+            console.log('socket error :' + JSON.stringify(err));
+        });
 
         socket.on('end', () => { handleDisconnect(); } );
     });

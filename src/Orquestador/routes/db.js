@@ -1,23 +1,42 @@
-import { Router } from 'express'
+import { Router } from 'express';
 import { Socket } from 'net';
 
 const router = Router();
 
-var net = require('net');
+//import { dataServers } from './dataConnections';
+var dataServers = require('./dataConnections').default;
 
 function sendRequestToDataNode(msg,res){
     let socket = getSocket(msg, res);
-    //Setteo un handler que responda este request REST
+    //Setteo un handler que responda este request en particular
+    socket.removeAllListeners();
+    socket.on('error', (err) => {
+        console.log('Socket error: ' + JSON.stringify(err) + ' - Retries: ' + socket.retries + " MaxRetries: " + socket.MaxConnectionRetries);
+        if(!res.headersSent){
+            res.json({error:500,message:"Data server unavailable."});
+        }
+        
+        if(socket.retries < socket.MaxConnectionRetries){
+            socket.connect(socket.remotePort,socket.remoteAddress, () => {
+                console.log('Reconnected to data Node');
+                socket.retries = 0;
+            });
+            socket.retries++;
+        }else{
+            console.log('Dropping connection definitively due to excesive retries');
+        }
+    });
     socket.on('data', (chunk) => {
         console.log('data recieved: ' + chunk);
         res.send(chunk);
-        socket.close();
     });
     socket.json(msg);
 }
 
 //Aca tenemos que decidir a que socket le vamos a pasar el request
 function getSocket(msg, res){
+    return dataServers[0];
+
     //Por ahora solo devolvemos un socket recien conectado
     let socket = new Socket();
     socket.json = function(data){
@@ -49,6 +68,8 @@ router.get('/:key', async(req,res) => {
 });
 
 router.put('/:key', async(req,res) => {
+
+    console.log(req.body);
 
     if( req.body.value === undefined){
         res.json({error: 400, message: 'Bad request, Post a json with value property on it'});
