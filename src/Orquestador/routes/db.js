@@ -1,61 +1,113 @@
 import { Router } from 'express'
-const router = Router();
 
+const router = Router();
 var SkipList = require("dsjslib/lib/SkipList");//.SkipList;
 var list = new SkipList();
 
-router.get('/', async(req,res) => {
+router.get('/:key', async(req,res) => {
 
     console.log(JSON.stringify(req.query));
+    let method = req.query.method;
+    let key = req.params.key;
     let resp = {};
-    if(req.query.method === "equal"){
-        resp = handleGetEqual(req.query);
+    switch(method) {
+        case "equal":
+            resp = handleGetEqual(key);
+            break;
+        case "gt":
+            resp = handleComparison(key,(a,b)=>{return a>b;});
+            break;
+        case "lt":
+            resp = handleComparison(key,(a,b)=>{return a<b;});
+            break;
+        default:
+            resp = {error: 400, message: 'Bad request, specify a valid method as a queryparam'};
+            break;
     }
-    else if(req.query.method === "gt"){
-        resp = handleComparison(req.query,(a,b)=>{return a>b;})
-    }
-    else if(req.query.method === "lt"){
-        resp = handleComparison(req.query,(a,b)=>{return a<b;})
-    }else{
-        resp = {error: -1, message: 'Invalid query param. Must be: ?key=unaKey&method=equal/gt/lt'};
+    res.json(resp);
+});
+
+router.post('/:key', async(req,res) => {
+    let value = req.body.value;
+    let keyToFound = req.params.key;
+    let resp = {};
+
+    if(value !== undefined) {
+        if(!valueAlreadyExists(keyToFound)) {
+            list.put(keyToFound, value);
+
+            resp = {result: "OK"};
+        } else {
+            resp = {error: 400, message: 'Bad request, Key already exists if you want to edit it use PUT'};
+        }
+    } else {
+        resp = {error: 400, message: 'Bad request, Post a json with value property on it'};
     }
 
     res.json(resp);
 });
 
-//No valida existencia, solo inserta y si existe sobreescribe
 router.put('/', async(req,res) => {
-    list.put(req.query.key,req.query.value);
-    res.json({result: "OK"});
+    let value = req.body.value;
+    let keyToFound = req.params.key;
+    let resp = {};
+
+    if(value !== undefined) {
+        if(valueAlreadyExists(keyToFound)) {
+            list.put(keyToFound,value);
+
+            resp = {result: "OK"};
+        } else {
+            resp = {error: 400, message: 'Bad request, Key doesnt exist use POST instead'};
+        }
+    } else {
+        resp = {error: 400, message: 'Bad request, Post a json with value property on it'};
+    }
+
+    res.json(resp);
 });
 
-router.delete('/', async(req,res) => {
-    list.delete(req.query.key);
-    res.json({result: "OK"});
+router.delete('/:key', async(req,res) => {
+    let resp = {};
+    let keyToFound = req.params.key;
+
+    if(valueAlreadyExists(keyToFound)) {
+        list.put(keyToFound,value);
+
+        resp = {result: "OK"};
+    } else {
+        resp = {error: 400, message: 'Bad request, Key doesnt exist'};
+    }
+
+    res.json(resp);
 });
 
-function handleGetEqual(body){
-    let resp = list.get(body.key);
+function handleGetEqual(key){
+    let resp = list.get(key);
     if(resp != null){
         return resp;
     }else{
         return {
-            error: -1,
-            message: "Could not find the key supplied"
+            error: 404,
+            message: 'Could not find the key supplied'
         };
     }
 }
 
-function handleComparison(body,comp){
+function handleComparison(keyToFound,comp){
     let set = list.entrySet();
     let resp = [];
     set.forEach(e => {
-        if(comp(e.key,body.key)){
-            resp.push(e);
+        if(comp(e.key,keyToFound)){
+            resp.push(e.key);
         }
     });
 
     return resp;
+}
+
+function valueAlreadyExists(key) {
+    return list.get(key) !== undefined;
 }
 
 export default router;
