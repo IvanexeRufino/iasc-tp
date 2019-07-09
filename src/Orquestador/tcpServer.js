@@ -8,24 +8,26 @@ var tcpServer = createOrquestadorServer();
 tcpServer.peers = connectToPeers(config.Orquestadores);
 
 //Creo el servidor para obtener conexiones de los otros orquestadores
-//Prueba
-function createOrquestadorServer(){
+
+function createOrquestadorServer() {
 
     let server = net.createServer((socket) => {
         console.log('New connection!!');
 
         socket.on('data', (chunk) => {
-            handleVotation(chunk,socket);
+            handleVotation(chunk, socket);
         });
 
         //La desconexion la va a manejar el socket de ida
         socket.on('end', () => { console.log('Connection closed'); } );
     });
 
+    
     return server;
 }
 
 //Me conecto a los otros orquestadores
+
 function connectToPeers(peerArray){
 
     let ret = []
