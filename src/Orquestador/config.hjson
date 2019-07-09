@@ -23,5 +23,7 @@
             "IP": "127.0.0.1"
         }
     ],
-    "Priority": 0
+    "Priority": 0,
+    "MaxConnectionRetries": 5,
+    "RetryTimeout": 10000 //Cada cuanto voy a reintentar establecer una conexion contra el nodo de datos
 }

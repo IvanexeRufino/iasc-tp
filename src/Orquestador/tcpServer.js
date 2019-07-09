@@ -5,19 +5,20 @@ var config = require("./config.hjson");
 console.log(JSON.stringify(config));
 
 var tcpServer = createOrquestadorServer();
-var peers = connectToPeers(config.Orquestadores);
+tcpServer.peers = connectToPeers(config.Orquestadores);
 
 //Creo el servidor para obtener conexiones de los otros orquestadores
 function createOrquestadorServer(){
 
     let server = net.createServer((socket) => {
-        
+        console.log('New connection!!');
+
         socket.on('data', (chunk) => {
             handleVotation(chunk,socket);
         });
 
         //La desconexion la va a manejar el socket de ida
-        //socket.on('end', (socket) => {  } );
+        socket.on('end', () => { console.log('Connection closed'); } );
     });
 
     return server;
@@ -25,7 +26,6 @@ function createOrquestadorServer(){
 
 //Me conecto a los otros orquestadores
 function connectToPeers(peerArray){
-
 
     let ret = []
     peerArray.forEach( (endpoint) => {
@@ -44,7 +44,7 @@ function connectToPeers(peerArray){
 }
 
 function handleVotation(chunk){
-    
+    console.log('Data arrived! ' + chunk);
 }
 
 function triggerVotation(){
