@@ -1,6 +1,4 @@
 import { Router } from 'express';
-import { Socket } from 'net';
-
 const router = Router();
 
 const { crc32 } = require('crc');
@@ -13,20 +11,10 @@ function sendRequestToDataNode(msg,res){
     //Setteo un handler que responda este request en particular
     socket.removeAllListeners();
     socket.on('error', (err) => {
-        console.log('Socket error: ' + JSON.stringify(err) + ' - Retries: ' + socket.retries + " MaxRetries: " + socket.MaxConnectionRetries);
         if(!res.headersSent){
             res.json({error:500,message:"Data server unavailable."});
         }
-        
-        if(socket.retries < socket.MaxConnectionRetries){
-            socket.connect(socket.remotePort,socket.remoteAddress, () => {
-                console.log('Reconnected to data Node');
-                socket.retries = 0;
-            });
-            socket.retries++;
-        }else{
-            console.log('Dropping connection definitively due to excesive retries');
-        }
+        socket.defaultError(err);
     });
     socket.on('data', (chunk) => {
         console.log('data recieved: ' + chunk);

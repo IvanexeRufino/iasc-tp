@@ -27,7 +27,6 @@ function createOrquestadorServer(){
 //Me conecto a los otros orquestadores
 function connectToPeers(peerArray){
 
-
     let ret = []
     peerArray.forEach( (endpoint) => {
         let newSock = new net.Socket();
