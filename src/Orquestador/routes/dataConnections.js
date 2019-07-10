@@ -6,21 +6,21 @@ var config = require("../config.hjson");
 var dataServers = generateDataConnections();
 
 //Timer para reintentar conexion
-setTimeout( retryConnections, config.RetryTimeout)
+setTimeout(retryConnections, config.RetryTimeout)
 
-function retryConnections(){
+function retryConnections() {
     console.log('Retrying connections');
-    dataServers.forEach( (s) => {
-        if(!s.isConnected){
-            s.connect(s.remoteEndpoint.Port,s.remoteEndpoint.IP);
+    dataServers.forEach(s => {
+        if (!s.isConnected) {
+            s.connect(s.remoteEndpoint.Port, s.remoteEndpoint.IP);
         }
     });
-    setTimeout(retryConnections,config.RetryTimeout);
+    setTimeout(retryConnections, config.RetryTimeout);
 }
 
-function generateDataConnections(){
+function generateDataConnections() {
     let dataServers = [];
-    config.Datos.forEach((d) => {
+    config.Datos.forEach(d => {
         let socket = new Socket();
 
         //Me guardo a donde apunta este socket
@@ -28,28 +28,28 @@ function generateDataConnections(){
             Port: d.Port,
             IP: d.IP
         };
-        socket.json = function(obj){
+        socket.json = function (obj) {
             console.log('Sending data: ' + JSON.stringify(obj));
             this.write(JSON.stringify(obj));
         }
-        socket.connect(d.Port,d.IP, () => {
+        socket.connect(d.Port, d.IP, () => {
             console.log('Connected to ' + d.IP + ':' + d.Port);
             socket.retries = 0;
             socket.isConnected = true;
         });
 
         //Setteo el defaultHandler
-        socket.defaultError = function(err){
+        socket.defaultError = function (err) {
             console.log('Socket error: ' + JSON.stringify(err) + ' - Retries: ' + this.retries + " MaxRetries: " + this.MaxConnectionRetries);
-            
+
             //Marco el socket como no conectado
             this.isConnected = false;
 
-            if(this.retries < this.MaxConnectionRetries){
+            if (this.retries < this.MaxConnectionRetries) {
                 this.removeAllListeners('connect');
-                this.connect(this.remotePort,this.remoteAddress,reconnect);
+                this.connect(this.remotePort, this.remoteAddress, reconnect);
                 this.retries++;
-            }else{
+            } else {
                 console.log('Dropping connection definitively due to excesive retries');
                 this.retries = 0;
             }
@@ -65,7 +65,7 @@ function generateDataConnections(){
     return dataServers;
 }
 
-function reconnect(){
+function reconnect() {
     console.log('Reconnected to data Node');
     this.retries = 0;
     this.isConnected = true;
