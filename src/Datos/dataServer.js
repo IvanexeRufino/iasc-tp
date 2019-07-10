@@ -1,24 +1,22 @@
 var net = require('net');
-var SkipList = require("dsjslib/lib/SkipList");//.SkipList;
+var SkipList = require("dsjslib/lib/SkipList");
 var list = new SkipList();
 
 var dataServer = createDataServer();
 
 function createDataServer() {
-
     let server = net.createServer(socket => {
         console.log('New Connection!');
-        socket.json = (obj) => socket.write(JSON.stringify(obj));
+        socket.json = obj => socket.write(JSON.stringify(obj));
         socket.on('data', chunk => {
-            console.log('Data arrived: ' + chunk);
+            console.log(`Data arrived: ${chunk}`);
             handleMessage(chunk, socket);
         });
         socket.on('error', err => {
-            console.log('socket error :' + JSON.stringify(err));
+            console.log(`Socket error: ${JSON.stringify(err)}`);
         });
         socket.on('end', handleDisconnect);
     });
-
     return server;
 }
 
@@ -47,7 +45,7 @@ function handleGet(msg, socket) {
     console.log(msg);
     let resp = list.get(msg.key) || {
         result: "ERROR",
-        message: "Could not find the key supplied"
+        message: "Could not find the key supplied."
     };
     socket.json(resp);
 }

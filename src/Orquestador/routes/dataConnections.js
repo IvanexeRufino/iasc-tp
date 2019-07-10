@@ -28,20 +28,19 @@ function generateDataConnections() {
             Port: d.Port,
             IP: d.IP
         };
-        socket.json = function (obj) {
-            console.log('Sending data: ' + JSON.stringify(obj));
-            this.write(JSON.stringify(obj));
+        socket.json = obj => {
+            console.log(`Sending data: ${JSON.stringify(obj)}`);
+            socket.write(JSON.stringify(obj));
         }
         socket.connect(d.Port, d.IP, () => {
-            console.log('Connected to ' + d.IP + ':' + d.Port);
+            console.log(`Connected to ${d.IP}:${d.Port}`);
             socket.retries = 0;
             socket.isConnected = true;
         });
 
         //Setteo el defaultHandler
-        socket.defaultError = function (err) {
-            console.log('Socket error: ' + JSON.stringify(err) + ' - Retries: ' + this.retries + " MaxRetries: " + this.MaxConnectionRetries);
-
+        socket.defaultError = err => {
+            console.log(`Socket error: ${JSON.stringify(err)} - Retries: ${this.retries} MaxRetries: ${this.MaxConnectionRetries}`);
             //Marco el socket como no conectado
             this.isConnected = false;
 

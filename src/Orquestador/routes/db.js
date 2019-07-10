@@ -1,7 +1,8 @@
 import { Router } from 'express';
 const router = Router();
-
 const { crc32 } = require('crc');
+require("hjson/lib/require-config");
+const config = require("../config.hjson");
 
 //import { dataServers } from './dataConnections';
 var dataServers = require('./dataConnections').default;
@@ -57,14 +58,31 @@ router.get('/', async (req, res) => {
 
 router.put('/:key', async (req, res) => {
     console.log(req.body);
-    if (req.body.value === undefined) {
+    let key = req.params.key;
+    let value = req.body.value;
+    if (!value) {
         res.statusCode = 400;
-        res.json({ error: 400, message: 'Bad request, Post a json with value property on it' });
-    } else {
+        res.json({ error: 400, message: 'Bad request, Post a json with value property on it.' });
+    }
+    else if (!checkKeyLength(key)) {
+        res.statusCode = 400;
+        res.json({
+            error: 400,
+            message: `Bad request, Key length can not exceed ${config.MaxKeyLength} characters.`
+        });
+    }
+    else if (!checkValueLength(value)) {
+        res.statusCode = 400;
+        res.json({
+            error: 400,
+            message: `Bad request, Value length can not exceed ${config.MaxValueLength} characters.`
+        });
+    }
+    else {
         sendRequestToDataNode({
             operation: "PUT",
-            key: req.params.key,
-            value: req.body.value
+            key: key,
+            value: value
         }, res);
     }
 });
@@ -75,5 +93,13 @@ router.delete('/:key', async (req, res) =>
         key: req.params.key
     }, res)
 );
+
+function checkKeyLength(key) {
+    return key.length <= config.MaxKeyLength;
+}
+
+function checkValueLength(value) {
+    return value.length <= config.MaxValueLength;
+}
 
 export default router;
