@@ -8,14 +8,7 @@ const config = require("../config.hjson");
 var dataServers = require('./dataConnections').default;
 
 function sendRequestToDataNode(msg, res) {
-    let socket;
-
-    // TODO Por ahora solo funciona el rango en un solo nodo de datos
-    if (msg.key)
-        socket = getSocket(msg, res);
-    else
-        socket = dataServers[0];
-
+    let socket = getSocket(msg, res);
     //Setteo un handler que responda este request en particular
     socket.removeAllListeners();
     socket.on('error', err => {
@@ -26,10 +19,25 @@ function sendRequestToDataNode(msg, res) {
         socket.defaultError(err);
     });
     socket.on('data', chunk => {
-        console.log('data recieved: ' + chunk);
+        console.log(`Data recieved: ${chunk}`);
         res.send(chunk);
     });
     socket.json(msg);
+}
+
+function sendRequestToAllDataNodes(msg, res) {
+    let data = [];
+    dataServers.forEach(socket => {
+        socket.removeAllListeners();
+        socket.on('data', chunk => data = data.concat(JSON.parse(chunk)));
+        socket.json(msg);
+    });
+    // Espero 1 segundo a que respondan todos, una negrada, pero es lo unico que se me ocurrio
+    // Habría que promisificar todo
+    setTimeout(() => {
+        console.log(`Data recieved: ${data}`);
+        res.send(data);
+    }, 1000);
 }
 
 //Aca tenemos que decidir a que socket le vamos a pasar el request
@@ -49,7 +57,7 @@ router.get('/:key', async (req, res) => {
 
 router.get('/', async (req, res) => {
     console.log(req.query);
-    sendRequestToDataNode({
+    sendRequestToAllDataNodes({
         operation: "RANGE",
         gt: req.query.gt,
         lt: req.query.lt

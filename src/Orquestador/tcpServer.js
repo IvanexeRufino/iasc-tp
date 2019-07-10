@@ -19,26 +19,25 @@ function createOrquestadorServer() {
         });
 
         //La desconexion la va a manejar el socket de ida
-        socket.on('end', () => { console.log('Connection closed'); } );
+        socket.on('end', () => { console.log('Connection closed'); });
     });
 
-    
+
     return server;
 }
 
 //Me conecto a los otros orquestadores
-
-function connectToPeers(peerArray){
+function connectToPeers(peerArray) {
 
     let ret = []
-    peerArray.forEach( (endpoint) => {
+    peerArray.forEach((endpoint) => {
         let newSock = new net.Socket();
-        newSock.connect(endpoint.port,endpoint.ip, () => {
+        newSock.connect(endpoint.port, endpoint.ip, () => {
             //Aca registro la conexion exitosa
         });
 
-        newSock.on('data', handleVotation );
-        newSock.on('end', triggerVotation );
+        newSock.on('data', handleVotation);
+        newSock.on('end', triggerVotation);
 
         ret.push(newSock);
     });
@@ -46,11 +45,11 @@ function connectToPeers(peerArray){
     return ret;
 }
 
-function handleVotation(chunk){
-    console.log('Data arrived! ' + chunk);
+function handleVotation(chunk) {
+    console.log(`Data arrived: ${chunk}`);
 }
 
-function triggerVotation(){
+function triggerVotation() {
 
 }
 

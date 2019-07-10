@@ -8,4 +8,4 @@ if (!port)
     port = 12345; // Default port
 
 dataServer.listen(port, '127.0.0.1');
-console.log(`Listening on port: ${port}`);
+console.log('Listening on port:', port);
