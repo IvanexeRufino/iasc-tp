@@ -20,7 +20,7 @@ function retryConnections(){
 }
 
 function retryReplicaSets(){
-
+    console.log('Retrying connections');
     replicaSets.forEach( (rs) =>{
         rs.Nodes.forEach( (n) => {
             if(!n.socket.isConnected){
@@ -89,7 +89,8 @@ function generateReplicaSets(){
             OpNumber: 0,
             Nodes: [],
             GetOperation: getOperation,
-            SendResponseIfReady: CheckAndSendResp
+            SendResponseIfReady: CheckAndSendResp,
+            Responded: false
         };
         rs.Set.forEach( (endpoint) => {
             //Creo dataNode y le asocio un socket
@@ -122,6 +123,7 @@ function CheckAndSendResp(opNum){
     console.log('ErrorsReceived length: ' + op.ErrorsReceived.length);
     //Ya respondieron todos los nodos (con error o con respuestas)
     if(this.Nodes.length === (op.ResponsesReceived.length + op.ErrorsReceived.length) ){
+        op.Responded = true;
         op.SendResponse();
         //TODO: Eliminar esta op del array
     }

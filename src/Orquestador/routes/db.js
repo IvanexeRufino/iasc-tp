@@ -26,7 +26,7 @@ function sendRequestToDataNode(msg,res){
 
 function sendRequestToDataNode(msg,res){
     let rs = getReplicaSet(msg,res);
-    
+
     rs.OpNumber++;
     rs.Operations.push(
         {
@@ -65,11 +65,16 @@ function sendRequestToDataNode(msg,res){
             }*/
             console.log('Socket error received: ' + err);
             rs.Operations.forEach( (op) => {
-                op.ErrorsReceived.push(err);
+                if(!op.Responded){
+                    op.ErrorsReceived.push(err);
+                }
             });
 
             //Envio respuesta si es la ultima
-            rs.SendResponseIfReady(resp.OpId);
+            rs.Operations.forEach( (op) =>{
+                rs.SendResponseIfReady(op.OpId);
+            });
+            
             n.socket.defaultError(err);
         });
 
