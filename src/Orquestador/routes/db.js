@@ -26,13 +26,14 @@ function sendRequestToDataNode(msg, res) {
 }
 
 function sendRequestToAllDataNodes(msg, res) {
+    let nodesReady = 0;
     let data = [];
-    dataServers.forEach((socket, idx, list) => {
+    dataServers.forEach(socket => {
         socket.removeAllListeners();
         socket.on('data', chunk => {
             data = data.concat(JSON.parse(chunk));
-            // Si es el ultimo mando el response
-            if (idx === list.length - 1) {
+            nodesReady++;            
+            if (nodesReady === dataServers.length) {
                 console.log(`Data recieved: ${JSON.stringify(data)}`);
                 res.send(data);
             }
