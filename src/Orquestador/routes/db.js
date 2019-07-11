@@ -3,9 +3,10 @@ const router = Router();
 
 const { crc32 } = require('crc');
 
-//import { dataServers } from './dataConnections';
 var dataServers = require('./dataConnections').default;
+var replicaSets = require('./dataConnections').default;
 
+/*
 function sendRequestToDataNode(msg,res){
     let socket = getSocket(msg, res);
     //Setteo un handler que responda este request en particular
@@ -21,6 +22,76 @@ function sendRequestToDataNode(msg,res){
         res.send(chunk);
     });
     socket.json(msg);
+}*/
+
+function sendRequestToDataNode(msg,res){
+    let rs = getReplicaSet(msg,res);
+    
+    rs.OpNumber++;
+    rs.Operations.push(
+        {
+            OpId: rs.OpNumber,
+            ResponsesReceived: [],
+            ErrorsReceived: [],
+            Response: res,
+            SendResponse: function(){
+                console.log('Sending response!!!');
+                if(!res.headersSent){
+                    if( this.ResponsesReceived.length > 0 ){
+                        this.Response.json(this.ResponsesReceived[0]);
+                    }else{
+                        this.Response.json(
+                            {
+                                error: 500,
+                                message:"Could not access any of the members of the replica set"
+                            }
+                        );
+                    }
+                }
+            }
+        }
+    );
+    msg.OpId = rs.OpNumber;
+
+    console.log('Loggeo operations luego de insertarlas: ' + rs.Operations);
+
+    rs.Nodes.forEach( (n) => {
+
+        n.socket.removeAllListeners();
+
+        n.socket.on('error', (err) => {
+            /*if(!res.headersSent){
+                res.json({error:500,message:"Data server unavailable."});
+            }*/
+            console.log('Socket error received: ' + err);
+            rs.Operations.forEach( (op) => {
+                op.ErrorsReceived.push(err);
+            });
+
+            //Envio respuesta si es la ultima
+            rs.SendResponseIfReady(resp.OpId);
+            n.socket.defaultError(err);
+        });
+
+        n.socket.on('data', (chunk) =>{
+            console.log('Data received: ' + chunk);
+
+            let resp = JSON.parse(chunk);
+            rs.GetOperation(resp.OpId).ResponsesReceived.push(resp);
+
+            //Envio respuesta si es la ultima
+            rs.SendResponseIfReady(resp.OpId);
+            //res.send(chunk);
+        });
+        n.socket.json(msg);
+    });
+}
+
+function getReplicaSet(msg){
+    const replicaIndex = crc32(msg.key) % replicaSets.length;
+    let replicaToUse = replicaSets[replicaIndex];
+
+    return replicaToUse;
 }
 
 //Aca tenemos que decidir a que socket le vamos a pasar el request

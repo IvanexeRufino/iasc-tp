@@ -60,18 +60,29 @@ function handleGet(msg, socket){
         resp = {error: -1, message: 'Invalid Message. Must be: {Operation:PUT/GET/DELETE, method=equal/gt/lt, key:unaKey, value:unValor(solo en el PUT)}'};
     }
 
+    //Devuelvo el OpId en la respuesta
+    resp.OpId = msg.OpId;
+
     socket.json(resp);
 }
 
 //No valida existencia, solo inserta y si existe sobreescribe
 function handlePut(msg, socket){
     list.put(msg.key,msg.value);
-    socket.json({result: "OK"});
+    let resp ={
+        OpId: msg.OpId,
+        result: "OK"
+    };
+    socket.json(resp);
 }
 
 function handleDelete(msg, socket){
     list.delete(msg.key);
-    socket.json({result: "OK"});
+    let resp ={
+        OpId: msg.OpId,
+        result: "OK"
+    };
+    socket.json(resp);
 }
 
 function handleDisconnect(){
