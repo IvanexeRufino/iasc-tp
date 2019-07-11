@@ -6,24 +6,6 @@ const { crc32 } = require('crc');
 var dataServers = require('./dataConnections').default;
 var replicaSets = require('./dataConnections').default;
 
-/*
-function sendRequestToDataNode(msg,res){
-    let socket = getSocket(msg, res);
-    //Setteo un handler que responda este request en particular
-    socket.removeAllListeners();
-    socket.on('error', (err) => {
-        if(!res.headersSent){
-            res.json({error:500,message:"Data server unavailable."});
-        }
-        socket.defaultError(err);
-    });
-    socket.on('data', (chunk) => {
-        console.log('data recieved: ' + chunk);
-        res.send(chunk);
-    });
-    socket.json(msg);
-}*/
-
 function sendRequestToDataNode(msg,res){
     let rs = getReplicaSet(msg,res);
 
@@ -59,26 +41,6 @@ function sendRequestToDataNode(msg,res){
 
         n.socket.removeAllListeners('data');
 
-        //n.socket.on('error', (err) => {
-        //    /*if(!res.headersSent){
-        //        res.json({error:500,message:"Data server unavailable."});
-        //    }*/
-        //    console.log('Socket error received: ' + err);
-        //    rs.Operations.forEach( (op) => {
-        //        if(!op.Responded){
-        //            op.ErrorsReceived.push(err);
-        //        }
-        //    });
-        //
-        //    //Envio respuesta si es la ultima
-        //    rs.Operations.forEach( (op) =>{
-        //        rs.SendResponseIfReady(op.OpId);
-        //    });
-        //    
-        //    n.socket.defaultError(err);
-        //    n.socket.setDefaultErrorListener();
-        //});
-
         n.socket.on('data', (chunk) =>{
             console.log('Data received: ' + chunk);
 
@@ -86,8 +48,7 @@ function sendRequestToDataNode(msg,res){
             rs.GetOperation(resp.OpId).ResponsesReceived.push(resp);
 
             //Envio respuesta si es la ultima
-            rs.SendResponseIfReady(resp.OpId);
-            //res.send(chunk);
+            rs.SendResponseIfReady(resp.OpI
         });
         if(!n.socket.isConnected){
             n.socket.defaultError();
@@ -102,12 +63,6 @@ function getReplicaSet(msg){
     let replicaToUse = replicaSets[replicaIndex];
 
     return replicaToUse;
-}
-
-//Aca tenemos que decidir a que socket le vamos a pasar el request
-function getSocket(msg, res){
-    const serverIndex = crc32(msg.key) % dataServers.length;
-    return dataServers[serverIndex];
 }
 
 router.get('/:key', async(req,res) => {
