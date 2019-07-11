@@ -3,80 +3,22 @@ import dataServer from '../../Datos/dataServer';
 require("hjson/lib/require-config");
 var config = require("../config.hjson");
 
-//var dataServers = generateDataConnections();
 var replicaSets = generateReplicaSets();
 
 //Timer para reintentar conexion
 setTimeout( retryReplicaSets, config.RetryTimeout)
-
-function retryConnections(){
-    console.log('Retrying connections');
-    dataServers.forEach( (s) => {
-        if(!s.isConnected){
-            s.connect(s.remoteEndpoint.Port,s.remoteEndpoint.IP);
-        }
-    });
-    setTimeout(retryConnections,config.RetryTimeout);
-}
 
 function retryReplicaSets(){
     console.log('Retrying connections');
     replicaSets.forEach( (rs) =>{
         rs.Nodes.forEach( (n) => {
             if(!n.socket.isConnected){
+                n.socket.setDefaultErrorListener();
                 n.socket.connectEndpoint(n.socket.remoteEndpoint);
             }
         });
     });
     setTimeout(retryReplicaSets,config.RetryTimeout);
-}
-
-function generateDataConnections(){
-    let dataServers = [];
-
-    config.Datos.forEach((d) => {
-        let socket = new Socket();
-
-        //Me guardo a donde apunta este socket
-        socket.remoteEndpoint = {
-            Port: d.Port,
-            IP: d.IP
-        };
-        socket.json = function(obj){
-            console.log('Sending data: ' + JSON.stringify(obj));
-            this.write(JSON.stringify(obj));
-        }
-        socket.connect(d.Port,d.IP, () => {
-            console.log('Connected to ' + d.IP + ':' + d.Port);
-            socket.retries = 0;
-            socket.isConnected = true;
-        });
-
-        //Setteo el defaultHandler
-        socket.defaultError = function(err){
-            console.log('Socket error: ' + JSON.stringify(err) + ' - Retries: ' + this.retries + " MaxRetries: " + this.MaxConnectionRetries);
-            
-            //Marco el socket como no conectado
-            this.isConnected = false;
-
-            if(this.retries < this.MaxConnectionRetries){
-                this.removeAllListeners('connect');
-                this.connect(this.remotePort,this.remoteAddress,reconnect);
-                this.retries++;
-            }else{
-                console.log('Dropping connection definitively due to excesive retries');
-                this.retries = 0;
-            }
-        };
-        socket.on('error', socket.defaultError);
-
-        socket.MaxConnectionRetries = config.MaxConnectionRetries;
-        socket.retries = 0;
-
-        dataServers.push(socket);
-    });
-
-    return dataServers;
 }
 
 function generateReplicaSets(){
@@ -95,7 +37,7 @@ function generateReplicaSets(){
         rs.Set.forEach( (endpoint) => {
             //Creo dataNode y le asocio un socket
             let dataNode = {};
-            dataNode.socket = initSocket(endpoint);
+            dataNode.socket = initSocket(endpoint, replicaSet);
 
             replicaSet.Nodes.push(dataNode);
         });
@@ -126,10 +68,12 @@ function CheckAndSendResp(opNum){
         op.Responded = true;
         op.SendResponse();
         //TODO: Eliminar esta op del array
+        let index = this.Operations.indexOf(op);
+        this.Operations.splice(index,1);
     }
 }
 
-function initSocket(endpoint){
+function initSocket(endpoint, replicaSet){
     let socket = new Socket();
 
     //Me guardo a donde apunta este socket
@@ -152,7 +96,21 @@ function initSocket(endpoint){
     //Setteo el defaultHandler
     socket.defaultError = function(err){
         console.log('Socket error: ' + JSON.stringify(err) + ' - Retries: ' + this.retries + " MaxRetries: " + this.MaxConnectionRetries);
+        
+        replicaSet.Operations.forEach( (op) => {
+            if(!op.Responded){
+                //Solo pusheo el error si ya no pushee un error de este socket
+                if( op.ErrorsReceived.every(element => element !== this) ){
+                    op.ErrorsReceived.push(this);
+                }
+            }
+        });
 
+        //Envio respuesta si es la ultima
+        replicaSet.Operations.forEach( (op) =>{
+            replicaSet.SendResponseIfReady(op.OpId);
+        });
+        
         //Marco el socket como no conectado
         this.isConnected = false;
 
@@ -166,6 +124,11 @@ function initSocket(endpoint){
         }
     };
     socket.on('error', socket.defaultError);
+
+    socket.setDefaultErrorListener = function(){
+        this.removeAllListeners('error');
+        this.on('error',this.defaultError);
+    };
 
     socket.MaxConnectionRetries = config.MaxConnectionRetries;
     socket.retries = 0;

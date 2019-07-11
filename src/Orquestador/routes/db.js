@@ -57,26 +57,27 @@ function sendRequestToDataNode(msg,res){
 
     rs.Nodes.forEach( (n) => {
 
-        n.socket.removeAllListeners();
+        n.socket.removeAllListeners('data');
 
-        n.socket.on('error', (err) => {
-            /*if(!res.headersSent){
-                res.json({error:500,message:"Data server unavailable."});
-            }*/
-            console.log('Socket error received: ' + err);
-            rs.Operations.forEach( (op) => {
-                if(!op.Responded){
-                    op.ErrorsReceived.push(err);
-                }
-            });
-
-            //Envio respuesta si es la ultima
-            rs.Operations.forEach( (op) =>{
-                rs.SendResponseIfReady(op.OpId);
-            });
-            
-            n.socket.defaultError(err);
-        });
+        //n.socket.on('error', (err) => {
+        //    /*if(!res.headersSent){
+        //        res.json({error:500,message:"Data server unavailable."});
+        //    }*/
+        //    console.log('Socket error received: ' + err);
+        //    rs.Operations.forEach( (op) => {
+        //        if(!op.Responded){
+        //            op.ErrorsReceived.push(err);
+        //        }
+        //    });
+        //
+        //    //Envio respuesta si es la ultima
+        //    rs.Operations.forEach( (op) =>{
+        //        rs.SendResponseIfReady(op.OpId);
+        //    });
+        //    
+        //    n.socket.defaultError(err);
+        //    n.socket.setDefaultErrorListener();
+        //});
 
         n.socket.on('data', (chunk) =>{
             console.log('Data received: ' + chunk);
@@ -88,7 +89,11 @@ function sendRequestToDataNode(msg,res){
             rs.SendResponseIfReady(resp.OpId);
             //res.send(chunk);
         });
-        n.socket.json(msg);
+        if(!n.socket.isConnected){
+            n.socket.defaultError();
+        }else{
+            n.socket.json(msg);
+        }
     });
 }
 
