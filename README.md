@@ -1,8 +1,8 @@
-# TP IASC 2019
+## TP IASC 2019
 
-## API Rest para DB Clave-Valor distribuida
+### API Rest para DB Clave-Valor distribuida
 
-### Instalación
+#### Instalación
 ```
 npm install
 ```
@@ -11,29 +11,65 @@ npm install
 npm run-script build
 ```
 
-### Desarrollo
+#### Desarrollo
+##### Nodos Orquestadores
 ```
-npm run-script dev
+npm run-script orquestador port
 ```
 
-Utiliza nodemon para actualizar los cambios automáticamente al guardar.
+##### Nodos de Datos
+```
+npm run-script datos port
+```
 
-### Producción
+* En el archivo _config.hjson_ se encuentra la configuración de los puertos.
+
+* Se utiliza nodemon para actualizar los cambios automáticamente al guardar.
+
+#### Producción
 ```
-npm start
+npm index.js
 ```
+
+* Correr los _index.js_ de cada modulo luego del build.
 
 ### Uso
+#### Insertar una Key
+* **PUT**
 ```
 localhost:4000/db/:key?value=123
 ```
 
-### Métodos
+* Inserta la **_key_** con su respectivo **_value_**.
+* De existir la **_key_** se sobrescribe su **_value_**.
 
-* **GET:** devuelve el **_value_** de la **_key_** ingresada como parámetro de ruta.
-* **POST:** agrega una nueva **_key_** con su respectivo **_value_**.
-* **PUT:** modifica la **_key_** con su respectivo **_value_**.
-* **DELETE:** borra la **_key_**.
+#### Leer una Key
+* **GET**
+```
+localhost:4000/db/:key
+```
+
+* Devuelve el **_value_** de la **_key_** ingresada como parámetro de ruta.
+
+#### Leer todas las Key o un rango
+* **GET**
+```
+localhost:4000/db?gt=x&lt=y
+```
+
+* Sin parámetros devuelve todas las **_key_**de todos los nodos de datos.
+* Con el parámetro **gt** devuelve todas las **_key_** con sus **_value_** mayores a **x**
+* Con el parámetro **lt** devuelve todas las **_key_** con sus **_value_** menores a **y**
+se pueden combinar ambos operadores
+
+
+#### Eliminar una Key
+**DELETE** 
+```
+localhost:4000/db/:key
+```
+
+* Borra la **_key_**.
 
 #### Rutas
 

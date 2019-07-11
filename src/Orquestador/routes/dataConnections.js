@@ -40,17 +40,17 @@ function generateDataConnections() {
 
         //Setteo el defaultHandler
         socket.defaultError = err => {
-            console.log(`Socket error: ${JSON.stringify(err)} - Retries: ${this.retries} MaxRetries: ${this.MaxConnectionRetries}`);
+            console.log(`Socket error: ${JSON.stringify(err)} - Retries: ${socket.retries} MaxRetries: ${socket.MaxConnectionRetries}`);
             //Marco el socket como no conectado
-            this.isConnected = false;
+            socket.isConnected = false;
 
-            if (this.retries < this.MaxConnectionRetries) {
-                this.removeAllListeners('connect');
-                this.connect(this.remotePort, this.remoteAddress, reconnect);
-                this.retries++;
+            if (socket.retries < socket.MaxConnectionRetries) {
+                socket.removeAllListeners('connect');
+                socket.connect(socket.remotePort, socket.remoteAddress, reconnect);
+                socket.retries++;
             } else {
                 console.log('Dropping connection definitively due to excesive retries');
-                this.retries = 0;
+                socket.retries = 0;
             }
         };
         socket.on('error', socket.defaultError);

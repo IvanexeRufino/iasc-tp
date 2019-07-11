@@ -27,17 +27,18 @@ function sendRequestToDataNode(msg, res) {
 
 function sendRequestToAllDataNodes(msg, res) {
     let data = [];
-    dataServers.forEach(socket => {
+    dataServers.forEach((socket, idx, list) => {
         socket.removeAllListeners();
-        socket.on('data', chunk => data = data.concat(JSON.parse(chunk)));
+        socket.on('data', chunk => {
+            data = data.concat(JSON.parse(chunk));
+            // Si es el ultimo mando el response
+            if (idx === list.length - 1) {
+                console.log(`Data recieved: ${JSON.stringify(data)}`);
+                res.send(data);
+            }
+        });
         socket.json(msg);
     });
-    // Espero 1 segundo a que respondan todos, una negrada, pero es lo unico que se me ocurrio
-    // Habría que promisificar todo
-    setTimeout(() => {
-        console.log(`Data recieved: ${data}`);
-        res.send(data);
-    }, 1000);
 }
 
 //Aca tenemos que decidir a que socket le vamos a pasar el request
