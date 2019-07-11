@@ -69,7 +69,7 @@ router.get('/', async (req, res) => {
 router.put('/:key', async (req, res) => {
     console.log(req.body);
     let key = req.params.key;
-    let value = req.body.value;
+    let value = req.query.value;
     if (!value) {
         res.statusCode = 400;
         res.json({ error: 400, message: 'Bad request, Post a json with value property on it.' });

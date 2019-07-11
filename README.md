@@ -3,6 +3,8 @@
 ### API Rest para DB Clave-Valor distribuida
 
 #### Instalación
+* Es necesario tener instalado [nodeJS](https://nodejs.org/) en el sistema.
+
 ```
 npm install
 ```
@@ -57,7 +59,7 @@ localhost:4000/db/:key
 localhost:4000/db?gt=x&lt=y
 ```
 
-* Sin parámetros devuelve todas las **_key_**de todos los nodos de datos.
+* Sin parámetros devuelve todas las **_key_** de todos los nodos de datos.
 * Con el parámetro **gt** devuelve todas las **_key_** con sus **_value_** mayores a **x**
 * Con el parámetro **lt** devuelve todas las **_key_** con sus **_value_** menores a **y**
 se pueden combinar ambos operadores
