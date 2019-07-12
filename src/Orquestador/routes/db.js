@@ -3,7 +3,6 @@ const router = Router();
 
 const { crc32 } = require('crc');
 
-var dataServers = require('./dataConnections').default;
 var replicaSets = require('./dataConnections').default;
 
 function sendRequestToDataNode(msg,res){
@@ -20,7 +19,16 @@ function sendRequestToDataNode(msg,res){
                 console.log('Sending response!!!');
                 if(!res.headersSent){
                     if( this.ResponsesReceived.length > 0 ){
-                        this.Response.json(this.ResponsesReceived[0]);
+
+                        //Elijo la respuesta mas actualizada
+                        let mostUpdatedValue = this.ResponsesReceived[0];
+                        for(let r of this.ResponsesReceived){
+                            if(r.LastModificationDate > mostUpdatedValue.LastModificationDate){
+                                mostUpdatedValue = r;
+                            }
+                        }
+
+                        this.Response.json(mostUpdatedValue);
                     }else{
                         this.Response.json(
                             {
@@ -34,6 +42,7 @@ function sendRequestToDataNode(msg,res){
         }
     );
     msg.OpId = rs.OpNumber;
+    msg.LastModificationDate = new Date();
 
     console.log('Loggeo operations luego de insertarlas: ' + rs.Operations);
 
@@ -48,7 +57,7 @@ function sendRequestToDataNode(msg,res){
             rs.GetOperation(resp.OpId).ResponsesReceived.push(resp);
 
             //Envio respuesta si es la ultima
-            rs.SendResponseIfReady(resp.OpI
+            rs.SendResponseIfReady(resp.OpId);
         });
         if(!n.socket.isConnected){
             n.socket.defaultError();

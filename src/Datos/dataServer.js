@@ -68,9 +68,14 @@ function handleGet(msg, socket){
 
 //No valida existencia, solo inserta y si existe sobreescribe
 function handlePut(msg, socket){
-    list.put(msg.key,msg.value);
+    list.put(msg.key,
+        {
+            value: msg.value,
+            LastModificationDate: msg.LastModificationDate
+        });
     let resp ={
         OpId: msg.OpId,
+        LastModificationDate: msg.LastModificationDate,
         result: "OK"
     };
     socket.json(resp);
@@ -80,6 +85,7 @@ function handleDelete(msg, socket){
     list.delete(msg.key);
     let resp ={
         OpId: msg.OpId,
+        LastModificationDate: msg.LastModificationDate,
         result: "OK"
     };
     socket.json(resp);
@@ -92,7 +98,10 @@ function handleDisconnect(){
 function handleGetEqual(body){
     let resp = list.get(body.key);
     if(resp != null){
-        return resp;
+        return { 
+                value: resp.value,
+                LastModificationDate: resp.LastModificationDate
+            };
     }else{
         return {
             error: -1,
@@ -106,7 +115,10 @@ function handleComparison(body,comp){
     let resp = [];
     set.forEach(e => {
         if(comp(e.key,body.key)){
-            resp.push(e);
+            resp.push({
+                value: e.value,
+                LastModificationDate: e.LastModificationDate
+            });
         }
     });
 
