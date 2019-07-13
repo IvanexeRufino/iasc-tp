@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { timingSafeEqual } from 'crypto';
 const router = Router();
 
 const { crc32 } = require('crc');
@@ -7,7 +6,7 @@ var replicaSets = require('./dataConnections').default;
 
 //Las busquedas por rango van a acceder a toda la bd
 function needsFullDbAccess(msg){
-    return msg.operation === "GET" && (msg.method === "lt" || msg.method === "gt");
+    return msg.operation === "RANGE";
 }
 
 function sendRequestToReplicaSets(msg,res){
@@ -153,34 +152,39 @@ function getReplicaSet(msg){
     return replicaToUse;
 }
 
-router.get('/:key', async(req,res) => {
+router.get('/:key', async (req, res) => {
+    console.log(req.query);
+    sendRequestToReplicaSets({
+        operation: "GET",
+        key: req.params.key
+    }, res);
+});
+
+router.get('/', async(req,res) => {
     console.log(JSON.stringify(req.query));
 
-    if( req.query.method === undefined || 
-        (req.query.method !== "equal" && req.query.method !== "gt" 
-        && req.query.method !== "lt" ) 
-    ){
-        res.json({error: 400, message: 'Bad request, specify a valid method as a queryparam'});
+    if(req.query.lt === undefined && req.query.gt === undefined){
+        res.json({error:400, message: 'Bad request, must specify a range as a queryparam. Example: /db?gt=hola&lt=chau'});
     }else {
         sendRequestToReplicaSets({
-            operation: "GET",
-            key: req.params.key,
-            method: req.query.method,
+            operation: "RANGE",
+            lt: req.query.lt,
+            gt: req.query.gt
         }, res);
     }
 });
 
 router.put('/:key', async(req,res) => {
 
-    console.log(req.body);
+    console.log(req.query);
 
-    if( req.body.value === undefined){
-        res.json({error: 400, message: 'Bad request, Post a json with value property on it'});
+    if( req.query.value === undefined){
+        res.json({error: 400, message: 'Bad request, needs query param with value in it: /db/:key?value=123'});
     }else{
         sendRequestToReplicaSets({
             operation: "PUT",
             key: req.params.key,
-            value: req.body.value
+            value: req.query.value
         }, res);
     }
 });

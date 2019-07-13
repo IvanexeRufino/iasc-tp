@@ -33,6 +33,9 @@ function handleMessage(chunk, socket){
         case "GET":
             handleGet(msg, socket);
             break;
+        case "RANGE":
+            handleRange(msg, socket);
+            break;
         case "PUT":
             handlePut(msg, socket);
             break;
@@ -45,24 +48,36 @@ function handleMessage(chunk, socket){
     }
 }
 
+function handleRange(msg, socket){
+    console.log(JSON.stringify(msg));
+
+    let resp = handleComparison(msg, (elem) => {
+        if(msg.gt === undefined && msg.lt === undefined){
+            return false;
+        }
+        if(msg.gt === undefined){
+            return elem < msg.lt;
+        }else if(msg.lt === undefined){
+            return elem > msg.gt;
+        }else{
+            return (elem > msg.gt) && (elem < msg.lt);
+        }
+    });
+
+    resp.OpId = msg.OpId;
+    
+    console.log('Sending Response: ' + JSON.stringify(resp));
+
+    socket.json(resp);
+}
+
 function handleGet(msg, socket){
     console.log(JSON.stringify(msg));
-    let resp = {};
-    if(msg.method === "equal"){
-        resp = handleGetEqual(msg);
-    }
-    else if(msg.method === "gt"){
-        resp = handleComparison(msg,(a,b)=>{return a>b;})
-    }
-    else if(msg.method === "lt"){
-        resp = handleComparison(msg,(a,b)=>{return a<b;})
-    }else{
-        resp = {error: -1, message: 'Invalid Message. Must be: {Operation:PUT/GET/DELETE, method=equal/gt/lt, key:unaKey, value:unValor(solo en el PUT)}'};
-    }
 
-    //Devuelvo el OpId en la respuesta
+    let resp = handleGetEqual(msg);
+    
     resp.OpId = msg.OpId;
-
+    
     console.log('Sending Response: ' + JSON.stringify(resp));
 
     socket.json(resp);
@@ -116,7 +131,7 @@ function handleComparison(body,comp){
     let set = list.entrySet();
     let resp = { values: [] };
     set.forEach(e => {
-        if(comp(e.key,body.key)){
+        if(comp(e.key)){
             resp.values.push({
                 key: e.key,
                 value: e.value.value,
