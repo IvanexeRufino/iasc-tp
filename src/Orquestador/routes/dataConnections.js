@@ -33,6 +33,7 @@ function generateReplicaSets(){
             SendResponseIfReady: CheckAndSendResp,
             Responded: false
         };
+      
         rs.Set.forEach( (endpoint) => {
             //Creo dataNode y le asocio un socket
             let dataNode = {};
@@ -135,7 +136,7 @@ function initSocket(endpoint, replicaSet){
     return socket;
 }
 
-function reconnect(){
+function reconnect() {
     console.log('Reconnected to data Node');
     this.retries = 0;
     this.isConnected = true;

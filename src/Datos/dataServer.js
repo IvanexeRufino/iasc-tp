@@ -1,35 +1,26 @@
 var net = require('net');
-var SkipList = require("dsjslib/lib/SkipList");//.SkipList;
+var SkipList = require("dsjslib/lib/SkipList");
 var list = new SkipList();
 
 var dataServer = createDataServer();
 
-function createDataServer(){
-
-    let server = net.createServer((socket) => {
+function createDataServer() {
+    let server = net.createServer(socket => {
         console.log('New Connection!');
-        
-        socket.json = function(obj){
-            this.write(JSON.stringify(obj));
-        }
-        socket.on('data', (chunk) => {
-            console.log('Data arrived: ' + chunk);
-            handleMessage(chunk,socket);
+        socket.json = obj => socket.write(JSON.stringify(obj));
+        socket.on('data', chunk => {
+            console.log(`Data arrived: ${chunk}`);
+            handleMessage(chunk, socket);
         });
-        socket.on('error', (err) => {
-            console.log('socket error :' + JSON.stringify(err));
-        });
-
-        socket.on('end', () => { handleDisconnect(); } );
+        socket.on('error', err => console.log(`Socket error: ${JSON.stringify(err)}`));
+        socket.on('end', handleDisconnect);
     });
-
     return server;
 }
 
-function handleMessage(chunk, socket){
+function handleMessage(chunk, socket) {
     let msg = JSON.parse(chunk);
-
-    switch(msg.operation){
+    switch (msg.operation) {
         case "GET":
             handleGet(msg, socket);
             break;
@@ -138,9 +129,11 @@ function handleComparison(body,comp){
                 LastModificationDate: e.value.LastModificationDate
             });
         }
-    });
+    );
+}
 
-    return resp;
+function handleDisconnect() {
+    //No hago nada
 }
 
 export default dataServer;

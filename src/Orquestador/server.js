@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 const app = express(bodyParser.json());
 
 // Importing Routes
-import IndexRoutes from './routes/index'
+import HomeRoutes from './routes/home'
 import DBRoutes from './routes/db'
 
 // settings
@@ -15,7 +15,7 @@ app.use(urlencoded({ extended: false }));
 app.use(json());
 
 // Routes
-app.use(IndexRoutes);
+app.use(HomeRoutes);
 app.use('/db', DBRoutes);
 
 export default app;
