@@ -23,9 +23,32 @@
             "IP": "127.0.0.1"
         }
     ],
+    //Contiene varios sets de replicas. Todos los nodos en un set van a contener la misma data
+    "ReplicaSets": [
+        {
+            "Set": [
+                {
+                    "Port" : 22221,
+                    "IP": "127.0.0.1"
+                },
+                {
+                    "Port": 22222,
+                    "IP": "127.0.0.1"
+                }
+            ]
+        },
+        {
+            "Set": [
+                {
+                    "Port" : 22223,
+                    "IP": "127.0.0.1"
+                }
+            ]
+        }
+    ]
     "Priority": 0,
     "MaxConnectionRetries": 5,
-    "RetryTimeout": 10000 //Cada cuanto voy a reintentar establecer una conexion contra el nodo de datos,
+    "RetryTimeout": 10000, //Cada cuanto voy a reintentar establecer una conexion contra el nodo de datos
     "MaxKeyLength": 20,
     "MaxValueLength": 50
 }

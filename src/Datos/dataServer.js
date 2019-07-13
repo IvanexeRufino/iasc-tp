@@ -39,50 +39,95 @@ function handleMessage(chunk, socket) {
     }
 }
 
-function handleGet(msg, socket) {
-    console.log(msg);
-    let resp = list.get(msg.key) || {
-        result: "ERROR",
-        message: "Could not find the key supplied."
+function handleRange(msg, socket){
+    console.log(JSON.stringify(msg));
+
+    let resp = handleComparison(msg, (elem) => {
+        if(msg.gt === undefined && msg.lt === undefined){
+            return false;
+        }
+        if(msg.gt === undefined){
+            return elem < msg.lt;
+        }else if(msg.lt === undefined){
+            return elem > msg.gt;
+        }else{
+            return (elem > msg.gt) && (elem < msg.lt);
+        }
+    });
+
+    resp.OpId = msg.OpId;
+    
+    console.log('Sending Response: ' + JSON.stringify(resp));
+
+    socket.json(resp);
+}
+
+function handleGet(msg, socket){
+    console.log(JSON.stringify(msg));
+
+    let resp = handleGetEqual(msg);
+    
+    resp.OpId = msg.OpId;
+    
+    console.log('Sending Response: ' + JSON.stringify(resp));
+
+    socket.json(resp);
+}
+
+//No valida existencia, solo inserta y si existe sobreescribe
+function handlePut(msg, socket){
+    list.put(msg.key,
+        {
+            value: msg.value,
+            LastModificationDate: msg.LastModificationDate
+        });
+    let resp ={
+        OpId: msg.OpId,
+        LastModificationDate: msg.LastModificationDate,
+        result: "OK"
     };
     socket.json(resp);
 }
 
-// Si no se especifica gt ni lt devuelve todas las keys
-function handleRange(msg, socket) {
-    console.log(msg);
-    let gt = msg.gt;
-    let lt = msg.lt;
-    let set = list.entrySet();
-    let range = [];
-    set.forEach(entry => {
-        if (
-            (!gt || entry.value > gt)
-            &&
-            (!lt || entry.value < lt)
-        )
-            range.push(entry);
-    });
-    socket.json(range);
-}
-
-// No valida existencia, solo inserta y si existe sobreescribe
-function handlePut(msg, socket) {
-    list.put(msg.key, msg.value);
-    socket.json(
-        {
-            result: "OK",
-            message: "Key Updated."
-        }
-    );
-}
-
-function handleDelete(msg, socket) {
+function handleDelete(msg, socket){
     list.delete(msg.key);
-    socket.json(
-        {
-            result: "OK",
-            message: "Key Deleted."
+    let resp ={
+        OpId: msg.OpId,
+        LastModificationDate: msg.LastModificationDate,
+        result: "OK"
+    };
+    socket.json(resp);
+}
+
+function handleDisconnect(){
+    //No hago nada
+}
+
+function handleGetEqual(body){
+    let resp = list.get(body.key);
+    if(resp != null){
+        return { 
+                value: resp.value,
+                LastModificationDate: resp.LastModificationDate
+            };
+    }else{
+        return {
+            error: -1,
+            message: "Could not find the key supplied"
+        };
+    }
+}
+
+function handleComparison(body,comp){
+    let set = list.entrySet();
+    let resp = { values: [] };
+    set.forEach(e => {
+        if(comp(e.key)){
+            resp.values.push({
+                key: e.key,
+                value: e.value.value,
+                LastModificationDate: e.value.LastModificationDate
+            });
         }
     );
 }
