@@ -48,5 +48,7 @@
     ]
     "Priority": 0,
     "MaxConnectionRetries": 5,
-    "RetryTimeout": 10000 //Cada cuanto voy a reintentar establecer una conexion contra el nodo de datos
+    "RetryTimeout": 10000, //Cada cuanto voy a reintentar establecer una conexion contra el nodo de datos
+    "MaxKeyLength": 100,
+    "MaxValueLength": 100
 }

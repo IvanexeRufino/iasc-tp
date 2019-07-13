@@ -1,6 +1,9 @@
 import { Router } from 'express';
 const router = Router();
 
+require("hjson/lib/require-config");
+var config = require("../config.hjson");
+
 const { crc32 } = require('crc');
 var replicaSets = require('./dataConnections').default;
 
@@ -178,13 +181,31 @@ router.put('/:key', async(req,res) => {
 
     console.log(req.query);
 
-    if( req.query.value === undefined){
+    let key = req.params.key;
+    let value = req.query.value;
+
+    if( !value ){
+        res.statusCode = 400;
         res.json({error: 400, message: 'Bad request, needs query param with value in it: /db/:key?value=123'});
-    }else{
+    }else if (!checkKeyLength(key)) {
+        res.statusCode = 400;
+        res.json({
+            error: 400,
+            message: `Bad request, Key length can not exceed ${config.MaxKeyLength} characters.`
+        });
+    }
+    else if (!checkValueLength(value)) {
+        res.statusCode = 400;
+        res.json({
+            error: 400,
+            message: `Bad request, Value length can not exceed ${config.MaxValueLength} characters.`
+        });
+    }
+    else {
         sendRequestToReplicaSets({
             operation: "PUT",
-            key: req.params.key,
-            value: req.query.value
+            key: key,
+            value: value
         }, res);
     }
 });
@@ -195,5 +216,13 @@ router.delete('/:key', async(req,res) => {
         key: req.params.key
     }, res);
 });
+
+function checkKeyLength(key) {
+    return key.length <= config.MaxKeyLength;
+}
+
+function checkValueLength(value) {
+    return value.length <= config.MaxValueLength;
+}
 
 export default router;
