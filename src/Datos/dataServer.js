@@ -129,11 +129,8 @@ function handleComparison(body,comp){
                 LastModificationDate: e.value.LastModificationDate
             });
         }
-    );
-}
-
-function handleDisconnect() {
-    //No hago nada
+    });
+    return resp;
 }
 
 export default dataServer;
