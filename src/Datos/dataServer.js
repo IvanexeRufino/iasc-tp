@@ -63,6 +63,8 @@ function handleGet(msg, socket){
     //Devuelvo el OpId en la respuesta
     resp.OpId = msg.OpId;
 
+    console.log('Sending Response: ' + JSON.stringify(resp));
+
     socket.json(resp);
 }
 
@@ -112,12 +114,13 @@ function handleGetEqual(body){
 
 function handleComparison(body,comp){
     let set = list.entrySet();
-    let resp = [];
+    let resp = { values: [] };
     set.forEach(e => {
         if(comp(e.key,body.key)){
-            resp.push({
-                value: e.value,
-                LastModificationDate: e.LastModificationDate
+            resp.values.push({
+                key: e.key,
+                value: e.value.value,
+                LastModificationDate: e.value.LastModificationDate
             });
         }
     });

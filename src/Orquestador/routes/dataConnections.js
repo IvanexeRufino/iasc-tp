@@ -67,7 +67,7 @@ function CheckAndSendResp(opNum){
     if(this.Nodes.length === (op.ResponsesReceived.length + op.ErrorsReceived.length) ){
         op.Responded = true;
         op.SendResponse();
-        //TODO: Eliminar esta op del array
+        //Elimino la op del array
         let index = this.Operations.indexOf(op);
         this.Operations.splice(index,1);
     }
