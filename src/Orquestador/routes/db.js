@@ -3,11 +3,9 @@ import { timingSafeEqual } from 'crypto';
 const router = Router();
 
 const { crc32 } = require('crc');
-
 var replicaSets = require('./dataConnections').default;
-//Numero para ir asignando ids de operaciones a nivel bd
-var dbOpCount = 0;
 
+//Las busquedas por rango van a acceder a toda la bd
 function needsFullDbAccess(msg){
     return msg.operation === "GET" && (msg.method === "lt" || msg.method === "gt");
 }
@@ -67,8 +65,6 @@ function sendRequestToReplicaSet(msg,res,rs,operationCallback){
     msg.OpId = rs.OpNumber;
     msg.LastModificationDate = new Date();
 
-    console.log('Loggeo operations luego de insertarlas: ' + rs.Operations);
-
     rs.Nodes.forEach( (n) => {
 
         n.socket.removeAllListeners('data');
@@ -82,6 +78,7 @@ function sendRequestToReplicaSet(msg,res,rs,operationCallback){
             //Envio respuesta si es la ultima
             rs.SendResponseIfReady(resp.OpId);
         });
+
         if(!n.socket.isConnected){
             n.socket.defaultError();
         }else{
@@ -147,68 +144,6 @@ function getDbOperationCallback(dbOperation){
 
         dbOperation.SendIfReady();
     }
-}
-
-function sendRequestToDataNode(msg,res){
-    let rs = getReplicaSet(msg,res);
-
-    rs.OpNumber++;
-    rs.Operations.push(
-        {
-            OpId: rs.OpNumber,
-            ResponsesReceived: [],
-            ErrorsReceived: [],
-            Response: res,
-            SendResponse: function(){
-                console.log('Sending response!!!');
-                if(!res.headersSent){
-                    if( this.ResponsesReceived.length > 0 ){
-
-                        //Elijo la respuesta mas actualizada
-                        let mostUpdatedValue = this.ResponsesReceived[0];
-                        for(let r of this.ResponsesReceived){
-                            if(r.LastModificationDate > mostUpdatedValue.LastModificationDate){
-                                mostUpdatedValue = r;
-                            }
-                        }
-
-                        this.Response.json(mostUpdatedValue);
-                    }else{
-                        this.Response.json(
-                            {
-                                error: 500,
-                                message:"Could not access any of the members of the replica set"
-                            }
-                        );
-                    }
-                }
-            }
-        }
-    );
-    msg.OpId = rs.OpNumber;
-    msg.LastModificationDate = new Date();
-
-    console.log('Loggeo operations luego de insertarlas: ' + rs.Operations);
-
-    rs.Nodes.forEach( (n) => {
-
-        n.socket.removeAllListeners('data');
-
-        n.socket.on('data', (chunk) =>{
-            console.log('Data received: ' + chunk);
-
-            let resp = JSON.parse(chunk);
-            rs.GetOperation(resp.OpId).ResponsesReceived.push(resp);
-
-            //Envio respuesta si es la ultima
-            rs.SendResponseIfReady(resp.OpId);
-        });
-        if(!n.socket.isConnected){
-            n.socket.defaultError();
-        }else{
-            n.socket.json(msg);
-        }
-    });
 }
 
 function getReplicaSet(msg){
