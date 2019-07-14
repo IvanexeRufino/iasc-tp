@@ -5,7 +5,7 @@ var config = require("../config.hjson");
 var replicaSets = generateReplicaSets();
 
 //Timer para reintentar conexion
-setTimeout(retryReplicaSets, config.RetryTimeout)
+setTimeout(retryReplicaSets, config.RetryTimeout);
 
 function retryReplicaSets() {
     console.log('Retrying connections');

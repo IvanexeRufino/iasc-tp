@@ -16,7 +16,7 @@ if (!config.Orquestadores[nodeNumber]) {
 }
 const port = config.Orquestadores[nodeNumber].port
 app.set('port', port);
-app.set('master', port === 4000);
+app.set('master', port === config.Orquestadores[0].port);
 app.set('nodeNumber', nodeNumber);
 
 // Middlewares
@@ -29,5 +29,30 @@ import DBRoutes from './routes/db'
 // Routes
 app.use(HomeRoutes);
 app.use('/db', DBRoutes);
+
+function makeMeMaster(bool) {
+  app.set('master', bool);
+  console.log('Master:', bool)
+}
+
+setInterval(checkForMaster, config.masterCheckInterval);
+
+const http = require('http');
+
+function checkForMaster() {
+  if (nodeNumber > 0)
+    fetchForAMaster(0);
+}
+
+function fetchForAMaster(i) {
+  if (i < nodeNumber) {
+    let url = config.Orquestadores[i].ip
+    let port = config.Orquestadores[i].port
+    http.get(`http://${url}:${port}/alive`,
+      () => makeMeMaster(false))
+      .on('error', () => fetchForAMaster(i + 1));
+  } else
+    makeMeMaster(true);
+}
 
 export default app;

@@ -1,7 +1,6 @@
 var net = require("net");
 require("hjson/lib/require-config");
 const config = require("./config.hjson");
-import app from './server';
 
 console.log(JSON.stringify(config));
 
