@@ -166,16 +166,11 @@ router.get('/:key', async (req, res) => {
 
 router.get('/', async (req, res) => {
     console.log(JSON.stringify(req.query));
-
-    if (req.query.lt === undefined && req.query.gt === undefined) {
-        res.json({ error: 400, message: 'Bad request, must specify a range as a queryparam. Example: /db?gt=hola&lt=chau' });
-    } else {
-        sendRequestToReplicaSets({
-            operation: "RANGE",
-            lt: req.query.lt,
-            gt: req.query.gt
-        }, res);
-    }
+    sendRequestToReplicaSets({
+        operation: "RANGE",
+        lt: req.query.lt,
+        gt: req.query.gt
+    }, res);
 });
 
 router.put('/:key', async (req, res) => {

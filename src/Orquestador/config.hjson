@@ -51,5 +51,5 @@
     "RetryTimeout": 10000, //Cada cuanto voy a reintentar establecer una conexion contra el nodo de datos
     "MaxKeyLength": 20,
     "MaxValueLength": 50,
-    "masterCheckInterval": 5000
+    "MasterCheckInterval": 5000
 }

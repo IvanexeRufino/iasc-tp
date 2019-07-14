@@ -9,9 +9,9 @@ let port = process.argv[2];
 const start = config.Datos[0].Port;
 const end = config.Datos[config.Datos.length - 1].Port;
 if (!port || port > end || port < start) {
-    console.error(`You must specify a port number beetwen ${start} and ${end} as a parameter.`);
+    console.error(`You must specify a port number between ${start} and ${end} as a parameter.`);
     process.exit();
 }
 
-dataServer.listen(port, '127.0.0.1');
+dataServer.listen(port);
 console.log('Listening on port:', port);
