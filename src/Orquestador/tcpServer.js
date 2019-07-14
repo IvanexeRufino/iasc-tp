@@ -1,11 +1,12 @@
 var net = require("net");
 require("hjson/lib/require-config");
-var config = require("./config.hjson");
+const config = require("./config.hjson");
+import app from './server';
 
 console.log(JSON.stringify(config));
 
 var tcpServer = createOrquestadorServer();
-tcpServer.peers = connectToPeers(config.Orquestadores);
+// tcpServer.peers = connectToPeers(config.Orquestadores);
 
 //Creo el servidor para obtener conexiones de los otros orquestadores
 

@@ -2,10 +2,13 @@ import "@babel/polyfill";
 import app from './server';
 import tcpServer from './tcpServer';
 
+const port = app.get('port');
+
 async function main() {
-    await app.listen(app.get('port'));
-    console.log('Server on port', app.get('port'));
+    await app.listen(port);
+    console.log('Master Node:', app.get('master'));
+    console.log('Server on port', port);
 }
 
 main();
-tcpServer.listen(1234);
+tcpServer.listen(port + 1000);
