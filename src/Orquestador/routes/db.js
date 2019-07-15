@@ -152,7 +152,6 @@ function getDbOperationCallback(dbOperation) {
 function getReplicaSet(msg) {
     const replicaIndex = crc32(msg.key) % replicaSets.length;
     let replicaToUse = replicaSets[replicaIndex];
-
     return replicaToUse;
 }
 
@@ -175,52 +174,53 @@ router.get('/', async (req, res) => {
 
 router.put('/:key', async (req, res) => {
     console.log(req.method, req.params);
-    if (!app.get('master')) {
-        res.statusCode = 500;
-        res.json({ error: 500, message: 'This request only it is allow to a Master Node.' });
-    }
-    let key = req.params.key;
-    let value = req.query.value;
-    if (!value) {
-        res.statusCode = 400;
-        res.json({ error: 400, message: 'Bad request, needs query param with value in it: /db/:key?value=123' });
-    } else if (!checkKeyLength(key)) {
-        res.statusCode = 400;
-        res.json({
-            error: 400,
-            message: `Bad request, Key length can not exceed ${config.MaxKeyLength} characters.`
-        });
-    }
-    else if (!checkValueLength(value)) {
-        res.statusCode = 400;
-        res.json({
-            error: 400,
-            message: `Bad request, Value length can not exceed ${config.MaxValueLength} characters.`
-        });
-    }
+    if (!app.get('master'))
+        masterError(res);
     else {
-        sendRequestToReplicaSets({
-            operation: "PUT",
-            key: key,
-            value: value
-        }, res);
+        let key = req.params.key;
+        let value = req.query.value;
+        if (!value)
+            errorResponse(res, 400, 'Bad request, needs query param with value in it: /db/:key?value=123');
+        else if (!checkKeyLength(key))
+            errorResponse(res, 400, `Bad request, Key length can not exceed ${config.MaxKeyLength} characters.`);
+        else if (!checkValueLength(value))
+            errorResponse(res, 400, `Bad request, Value length can not exceed ${config.MaxValueLength} characters.`);
+        else {
+            sendRequestToReplicaSets({
+                operation: "PUT",
+                key: key,
+                value: value
+            }, res);
+        }
     }
 });
 
 router.delete('/:key', async (req, res) => {
     console.log(req.method, req.params);
-    sendRequestToReplicaSets({
-        operation: "DELETE",
-        key: req.params.key
-    }, res);
+    if (!app.get('master'))
+        masterError(res);
+    else
+        sendRequestToReplicaSets({
+            operation: "DELETE",
+            key: req.params.key
+        }, res);
 });
 
-function checkKeyLength(key) {
-    return key.length <= config.MaxKeyLength;
+const masterErrorMsg = 'This request only it is allow to a Master Node.'
+const masterError = (res) => {
+    errorResponse(res, 500, masterErrorMsg);
+    console.error(masterErrorMsg);
 }
 
-function checkValueLength(value) {
-    return value.length <= config.MaxValueLength;
+const checkKeyLength = (key) => key.length <= config.MaxKeyLength;
+const checkValueLength = (value) => value.length <= config.MaxValueLength;
+
+const errorResponse = (res, _statusCode, _message) => {
+    res.statusCode = _statusCode;
+    res.json({
+        error: _statusCode,
+        message: _message
+    });
 }
 
 export default router;
