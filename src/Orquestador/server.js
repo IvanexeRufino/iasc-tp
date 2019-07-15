@@ -2,6 +2,7 @@ import express, { urlencoded, json } from 'express'
 import bodyParser from 'body-parser';
 const app = express(bodyParser.json());
 
+
 require("hjson/lib/require-config");
 const config = require("./config.hjson");
 console.log(config);
@@ -13,7 +14,8 @@ if (!nodeNumber) {
 }
 if (!config.Orquestadores[nodeNumber]) {
   console.error(`Invalid node number, try with a number below ${config.Orquestadores.length}.`);
-  process.exit();
+    process.exit();
+
 }
 const port = config.Orquestadores[nodeNumber].port
 app.set('port', port);
@@ -24,6 +26,7 @@ app.set('nodeNumber', nodeNumber);
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
+
 // Importing Routes
 import HomeRoutes from './routes/home'
 import DBRoutes from './routes/db'
@@ -32,7 +35,8 @@ app.use(HomeRoutes);
 app.use('/db', DBRoutes);
 
 
-// Chequeo de Master por prioridad según configuración
+
+// Chequeo de Master por prioridad según la configuración
 setInterval(checkForMaster, config.MasterCheckInterval);
 
 function checkForMaster() {
@@ -49,6 +53,7 @@ function fetchForAMaster(i) {
   else
     makeMeMaster(true);
 }
+
 
 function makeMeMaster(bool) {
   app.set('master', bool);

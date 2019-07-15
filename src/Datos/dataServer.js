@@ -102,6 +102,7 @@ function handleDelete(msg, socket) {
 
 function handleDisconnect() {
     //No hago nada
+    //
 }
 
 export default dataServer;
