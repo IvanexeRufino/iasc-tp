@@ -1,48 +1,10 @@
 var net = require("net");
 require("hjson/lib/require-config");
-const config = require("./config.hjson");
 
-console.log(config);
-
-var tcpServer = createOrquestadorServer();
-// tcpServer.peers = connectToPeers(config.Orquestadores);
-
-//Creo el servidor para obtener conexiones de los otros orquestadores
-function createOrquestadorServer() {
-    let server = net.createServer((socket) => {
-        console.log('New connection!');
-        socket.on('data', handleVotation);
-        //La desconexion la va a manejar el socket de ida
-        socket.on('end', () => console.log('Connection closed'));
-    });
-    return server;
-}
-
-// Ahora no es necesario
-function connectToPeers(peerArray) {
-
-    let ret = []
-    peerArray.forEach((endpoint) => {
-        let newSock = new net.Socket();
-        newSock.connect(endpoint.port, endpoint.ip, () => {
-            //Aca registro la conexion exitosa
-        });
-
-        newSock.on('data', handleVotation);
-        newSock.on('end', triggerVotation);
-
-        ret.push(newSock);
-    });
-
-    return ret;
-}
-
-function handleVotation(chunk) {
-    console.log(`Data arrived: ${chunk}`);
-}
-
-function triggerVotation() {
-
-}
+const tcpServer = net.createServer((socket) => {
+    console.log('New connection!');
+    socket.on('data', console.log(`Data arrived: ${chunk}`));
+    socket.on('end', console.log('Connection closed'));
+});
 
 export default tcpServer;

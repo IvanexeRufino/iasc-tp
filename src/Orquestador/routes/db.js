@@ -3,7 +3,7 @@ import app from '../server';
 const router = Router();
 
 require("hjson/lib/require-config");
-var config = require("../config.hjson");
+const config = require("../config.hjson");
 
 const { crc32 } = require('crc');
 var replicaSets = require('./dataConnections').default;
@@ -157,7 +157,7 @@ function getReplicaSet(msg) {
 }
 
 router.get('/:key', async (req, res) => {
-    console.log(req.query);
+    console.log(req.method, req.params);
     sendRequestToReplicaSets({
         operation: "GET",
         key: req.params.key
@@ -165,7 +165,7 @@ router.get('/:key', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-    console.log(JSON.stringify(req.query));
+    console.log(req.method, req.query);
     sendRequestToReplicaSets({
         operation: "RANGE",
         lt: req.query.lt,
@@ -174,16 +174,13 @@ router.get('/', async (req, res) => {
 });
 
 router.put('/:key', async (req, res) => {
-
-    console.log(req.query);
-
+    console.log(req.method, req.params);
     if (!app.get('master')) {
         res.statusCode = 500;
         res.json({ error: 500, message: 'This request only it is allow to a Master Node.' });
     }
     let key = req.params.key;
     let value = req.query.value;
-
     if (!value) {
         res.statusCode = 400;
         res.json({ error: 400, message: 'Bad request, needs query param with value in it: /db/:key?value=123' });
@@ -211,6 +208,7 @@ router.put('/:key', async (req, res) => {
 });
 
 router.delete('/:key', async (req, res) => {
+    console.log(req.method, req.params);
     sendRequestToReplicaSets({
         operation: "DELETE",
         key: req.params.key

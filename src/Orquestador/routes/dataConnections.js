@@ -1,10 +1,9 @@
 import { Socket } from 'net';
 require("hjson/lib/require-config");
-var config = require("../config.hjson");
-
+const config = require("../config.hjson");
 var replicaSets = generateReplicaSets();
 
-//Timer para reintentar conexion
+// Timer para reintentar conexion
 setInterval(retryReplicaSets, config.RetryTimeout);
 
 function retryReplicaSets() {
@@ -48,17 +47,14 @@ function generateReplicaSets() {
 }
 
 function getOperation(opNum) {
-    for (let op of this.Operations) {
-        if (op.OpId === opNum) {
+    for (let op of this.Operations)
+        if (op.OpId === opNum)
             return op;
-        }
-    }
     console.log('Could not find operation');
 }
 
 function CheckAndSendResp(opNum) {
     let op = this.GetOperation(opNum);
-
     console.log('Nodes length: ' + this.Nodes.length);
     console.log('RespReceived length: ' + op.ResponsesReceived.length);
     console.log('ErrorsReceived length: ' + op.ErrorsReceived.length);
@@ -80,12 +76,12 @@ function initSocket(endpoint, replicaSet) {
         Port: endpoint.Port,
         IP: endpoint.IP
     };
-    socket.json = function (obj) {
-        console.log('Sending data: ' + JSON.stringify(obj));
-        this.write(JSON.stringify(obj));
+    socket.json = obj => {
+        console.log(`Sending data: ${JSON.stringify(obj)}`);
+        socket.write(JSON.stringify(obj));
     }
     socket.connect(endpoint.Port, endpoint.IP, () => {
-        console.log('Connected to ' + endpoint.IP + ':' + endpoint.Port);
+        console.log(`Connected to ${endpoint.IP}:${endpoint.Port}`);
         socket.retries = 0;
         socket.isConnected = true;
     });
@@ -94,15 +90,12 @@ function initSocket(endpoint, replicaSet) {
     }
     //Setteo el defaultHandler
     socket.defaultError = function (err) {
-        console.log('Socket error: ' + JSON.stringify(err) + ' - Retries: ' + this.retries + " MaxRetries: " + this.MaxConnectionRetries);
-
+        console.log(`Socket error: ${JSON.stringify(err)} - Retries: ${this.retries} MaxRetries: ${this.MaxConnectionRetries}`);
         replicaSet.Operations.forEach((op) => {
-            if (!op.Responded) {
+            if (!op.Responded)
                 //Solo pusheo el error si ya no pushee un error de este socket
-                if (op.ErrorsReceived.every(element => element !== this)) {
+                if (op.ErrorsReceived.every(element => element !== this))
                     op.ErrorsReceived.push(this);
-                }
-            }
         });
 
         //Envio respuesta si es la ultima

@@ -4,6 +4,7 @@ const app = express(bodyParser.json());
 
 require("hjson/lib/require-config");
 const config = require("./config.hjson");
+console.log(config);
 
 const nodeNumber = process.argv[2];
 if (!nodeNumber) {
@@ -43,7 +44,7 @@ const http = require('http');
 function fetchForAMaster(i) {
   if (i < nodeNumber)
     http.get(`http://${config.Orquestadores[i].ip}:${config.Orquestadores[i].port}/alive`,
-      () => makeMeMaster(false))
+      makeMeMaster(false))
       .on('error', () => fetchForAMaster(i + 1));
   else
     makeMeMaster(true);

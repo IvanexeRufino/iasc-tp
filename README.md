@@ -16,8 +16,10 @@ npm run-script build
 #### Desarrollo
 ##### Nodos Orquestadores
 ```
-npm run-script orquestador port
+npm run-script orquestador number
 ```
+
+* _number_ indica el numero de nodo, 0 para el maestro por default, de no encontrarse cualquiera pasa a ser maestro
 
 ##### Nodos de Datos
 ```

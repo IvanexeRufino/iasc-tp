@@ -11,7 +11,7 @@ for (let rs of config.ReplicaSets)
         correctPorts.push(nodo.Port.toString());
 
 if (!correctPorts.includes(port)) {
-    console.error(`Yoy must specify one of the following ports: ${correctPorts.toString()}`);
+    console.error(`Yoy must specify one of the following ports: ${correctPorts}`);
     process.exit();
 }
 
