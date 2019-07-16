@@ -6,20 +6,39 @@ var dataServer = createDataServer();
 
 function createDataServer() {
     let server = net.createServer(socket => {
+        let chunkData;
+        let originalValue;
         console.log('New Connection!');
         socket.json = obj => socket.write(JSON.stringify(obj));
         socket.on('data', chunk => {
+            chunkData = JSON.parse(chunk);
+            originalValue = list.get(chunkData.get(chunkData.key));
             console.log(`Data arrived: ${chunk}`);
-            handleMessage(chunk, socket);
+            handleMessage(chunkData, socket);
         });
-        socket.on('error', err => console.error(`Socket error: ${JSON.stringify(err)}`));
+        socket.on('error', err => {
+            console.error(`Socket error: ${JSON.stringify(err)}`);
+            handleError(chunkData, originalValue);
+        });
         socket.on('end', handleDisconnect);
     });
     return server;
 }
 
-function handleMessage(chunk, socket) {
-    let msg = JSON.parse(chunk);
+function handleError(msg, originalValue) {
+    switch (msg.operation) {
+        case "PUT":
+            list.delete(msg.key);
+            break;
+        case "DELETE":
+            list.put(msg.key, originalValue);
+            break;
+        default:
+            break;
+    }
+}
+
+function handleMessage(msg, socket) {
     switch (msg.operation) {
         case "GET":
             handleGet(msg, socket);
@@ -75,13 +94,17 @@ function handleRange(msg, socket) {
     socket.json(resp);
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 //No valida existencia, solo inserta y si existe sobreescribe
 function handlePut(msg, socket) {
-    list.put(msg.key,
-        {
-            value: msg.value,
-            LastModificationDate: msg.LastModificationDate
-        });
+        list.put(msg.key,
+            {
+                value: msg.value,
+                LastModificationDate: msg.LastModificationDate
+            });
         let resp = {
             OpId: msg.OpId,
             LastModificationDate: msg.LastModificationDate,
