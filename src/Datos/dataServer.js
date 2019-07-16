@@ -12,9 +12,9 @@ function createDataServer() {
         socket.json = obj => socket.write(JSON.stringify(obj));
         socket.on('data', chunk => {
             chunkData = JSON.parse(chunk);
-            originalValue = list.get(chunkData.get(chunkData.key));
+            originalValue = list.get(chunkData.key);
             console.log(`Data arrived: ${chunk}`);
-            handleMessage(chunkData, socket);
+            handleMessage(chunk, socket);
         });
         socket.on('error', err => {
             console.error(`Socket error: ${JSON.stringify(err)}`);
@@ -31,14 +31,15 @@ function handleError(msg, originalValue) {
             list.delete(msg.key);
             break;
         case "DELETE":
-            list.put(msg.key, originalValue);
+            list.put(msg.key, originalValue.value);
             break;
         default:
             break;
     }
 }
 
-function handleMessage(msg, socket) {
+function handleMessage(chunk, socket) {
+    let msg = JSON.parse(chunk);
     switch (msg.operation) {
         case "GET":
             handleGet(msg, socket);
@@ -100,6 +101,7 @@ function sleep(ms) {
 
 //No valida existencia, solo inserta y si existe sobreescribe
 function handlePut(msg, socket) {
+    setTimeout(function()  {
         list.put(msg.key,
             {
                 value: msg.value,
@@ -111,6 +113,9 @@ function handlePut(msg, socket) {
             result: "OK"
         };
         socket.json(resp);
+
+    }, 5500);
+
 }
 
 function handleDelete(msg, socket) {
