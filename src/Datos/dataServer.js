@@ -101,7 +101,6 @@ function sleep(ms) {
 
 //No valida existencia, solo inserta y si existe sobreescribe
 function handlePut(msg, socket) {
-    setTimeout(function()  {
         list.put(msg.key,
             {
                 value: msg.value,
@@ -113,8 +112,6 @@ function handlePut(msg, socket) {
             result: "OK"
         };
         socket.json(resp);
-
-    }, 5500);
 
 }
 
